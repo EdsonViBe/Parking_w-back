@@ -1,0 +1,292 @@
+<div class="dashboard-page">
+  <div class="dash-header">
+    <div class="container">
+      <h1>Panel del Propietario</h1>
+      <p>Gestiona tus espacios y reservas</p>
+    </div>
+  </div>
+
+  <div class="container">
+    @if (accessDeniedRole) {
+      <div class="access-denied-banner">
+        🔒 Esa sección es exclusiva para cuentas de <strong>{{ accessDeniedRole }}</strong>. Te mostramos tu panel de propietario.
+      </div>
+    }
+
+    <!-- STATS -->
+    <div class="dash-stats">
+      <div class="stat-card">
+        <div class="stat-icon">📅</div>
+        <div><strong>{{ stats.totalReservations }}</strong><span>Reservas totales</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div><strong>S/ {{ stats.monthlyIncome }}</strong><span>Ingresos este mes</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⭐</div>
+        <div><strong>{{ stats.rating }}/5</strong><span>Calificación promedio</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🏠</div>
+        <div><strong>{{ stats.activeSpaces }}</strong><span>Espacios activos</span></div>
+      </div>
+    </div>
+
+    <div class="dash-grid">
+      <div class="dash-section">
+  <div class="section-head">
+    <h2>Reservas pendientes de aprobación</h2>
+  </div>
+
+  @if (pendingReservations.length === 0) {
+    <div class="empty-state">
+      <span>📭</span>
+      <h3>No hay reservas pendientes</h3>
+      <p>Las nuevas reservas aparecerán aquí para ser aprobadas o canceladas.</p>
+    </div>
+  } @else {
+    <div class="activity-list">
+      @for (res of pendingReservations; track res.id) {
+        <div class="activity-item">
+          <div class="act-user">🚗</div>
+
+          <div class="act-info">
+            <strong>{{ res.parkingTitle }}</strong>
+            <span>
+              {{ res.vehiclePlate | uppercase }} · {{ res.date }} · {{ res.startTime }} - {{ res.endTime }}
+            </span>
+            <span>S/ {{ res.totalPrice.toFixed(2) }}</span>
+          </div>
+
+          <div class="act-right">
+            <button class="btn btn-primary btn-sm" (click)="approveReservation(res.id)">
+              Aprobar
+            </button>
+
+            <button class="btn btn-danger btn-sm" (click)="cancelReservation(res.id)">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+
+
+
+
+      <!-- MIS ESPACIOS -->
+      <div class="dash-section">
+        <div class="section-head">
+          <h2>Mis Espacios</h2>
+          <button class="btn btn-primary btn-sm" (click)="toggleAddForm()">
+            {{ showAddForm ? '✕ Cancelar' : '+ Agregar espacio' }}
+          </button>
+        </div>
+
+        @if (showAddForm) {
+          <div class="add-form">
+            <h3>Nuevo espacio de estacionamiento</h3>
+            @if (restoredFromCookie) {
+              <div class="alert alert-info">🍪 Recuperamos los datos de tu espacio que estabas registrando.</div>
+            }
+            @if (formError) {
+              <div class="alert alert-error">{{ formError }}</div>
+            }
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Nombre del espacio</label>
+                <input class="form-control" [(ngModel)]="newSpace.title" (ngModelChange)="onFieldChange()" placeholder="Ej: Cochera San Isidro" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Precio por hora (S/)</label>
+                <input type="number" class="form-control" [(ngModel)]="newSpace.price" (ngModelChange)="onFieldChange()" min="1" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Dirección</label>
+              <input class="form-control" [(ngModel)]="newSpace.address" (ngModelChange)="onFieldChange()" placeholder="Ej: Av. Conquistadores 850" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Distrito</label>
+                <select class="form-control" [(ngModel)]="newSpace.district" (ngModelChange)="onFieldChange()">
+                  <option>Miraflores</option><option>San Isidro</option><option>Barranco</option>
+                  <option>La Molina</option><option>Surco</option><option>Lima Cercado</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Tipo</label>
+                <select class="form-control" [(ngModel)]="newSpace.type" (ngModelChange)="onFieldChange()">
+                  <option value="cubierto">Cubierto / Techado</option>
+                  <option value="descubierto">Descubierto</option>
+                  <option value="mixto">Mixto</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Nº de espacios</label>
+                <input type="number" class="form-control" [(ngModel)]="newSpace.totalSpots" (ngModelChange)="onFieldChange()" min="1" max="50" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Apertura</label>
+                <input type="time" class="form-control" [(ngModel)]="newSpace.openTime" (ngModelChange)="onFieldChange()" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Cierre</label>
+                <input type="time" class="form-control" [(ngModel)]="newSpace.closeTime" (ngModelChange)="onFieldChange()" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Descripción</label>
+              <textarea class="form-control" [(ngModel)]="newSpace.description" (ngModelChange)="onFieldChange()" rows="3" placeholder="Describe tu espacio..."></textarea>
+            </div>
+            <button class="btn btn-secondary" (click)="addSpace()">✓ Publicar espacio</button>
+          </div>
+        }
+
+        @for (space of mySpaces; track space.id) {
+          <div class="my-space-card">
+  @if (editingSpaceId === space.id) {
+    <div class="add-form" style="width: 100%;">
+      <h3>Editar espacio</h3>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nombre del espacio</label>
+          <input class="form-control" [(ngModel)]="editSpace.title" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Precio por hora (S/)</label>
+          <input type="number" class="form-control" [(ngModel)]="editSpace.price" min="1" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Dirección</label>
+        <input class="form-control" [(ngModel)]="editSpace.address" />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Distrito</label>
+          <select class="form-control" [(ngModel)]="editSpace.district">
+            <option>Miraflores</option>
+            <option>San Isidro</option>
+            <option>Barranco</option>
+            <option>La Molina</option>
+            <option>Surco</option>
+            <option>Lima Cercado</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tipo</label>
+          <select class="form-control" [(ngModel)]="editSpace.type">
+            <option value="cubierto">Cubierto / Techado</option>
+            <option value="descubierto">Descubierto</option>
+            <option value="mixto">Mixto</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Nº de espacios</label>
+          <input type="number" class="form-control" [(ngModel)]="editSpace.totalSpots" min="1" max="50" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Apertura</label>
+          <input type="time" class="form-control" [(ngModel)]="editSpace.openTime" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Cierre</label>
+          <input type="time" class="form-control" [(ngModel)]="editSpace.closeTime" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Descripción</label>
+        <textarea class="form-control" [(ngModel)]="editSpace.description" rows="3"></textarea>
+      </div>
+
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-primary btn-sm" (click)="saveEdit()">Guardar cambios</button>
+        <button class="btn btn-outline btn-sm" (click)="cancelEdit()">Cancelar</button>
+      </div>
+    </div>
+  } @else {
+    <div class="space-icon">🅿️</div>
+
+    <div class="space-details">
+      <strong>{{ space.title }}</strong>
+      <span>{{ space.address }}, {{ space.district }}</span>
+
+      <div class="space-meta">
+        <span class="badge badge-info">{{ space.type }}</span>
+        <span>S/ {{ space.price }}/hr</span>
+        <span>{{ space.availableSpots }}/{{ space.totalSpots }} disponibles</span>
+      </div>
+
+      <button class="btn btn-outline btn-sm" style="margin-top: 10px;" (click)="startEdit(space)">
+        ✏️ Editar
+      </button>
+    </div>
+
+    <div class="space-switch">
+      <label class="switch">
+        <input type="checkbox" [checked]="space.available" readonly />
+        <span class="slider"></span>
+      </label>
+      <span>{{ space.available ? 'Activo' : 'Inactivo' }}</span>
+    </div>
+  }
+</div>
+        }
+      </div>
+
+      <!-- ACTIVIDAD RECIENTE -->
+      <div class="dash-section">
+        <div class="section-head"><h2>Actividad reciente</h2></div>
+        <div class="activity-list">
+          @for (act of recentActivity; track act.user) {
+            <div class="activity-item">
+              <div class="act-user">{{ act.user[0] }}</div>
+              <div class="act-info">
+                <strong>{{ act.user }}</strong>
+                <span>{{ act.plate }} · {{ act.date }}</span>
+              </div>
+              <div class="act-right">
+                <strong class="act-amount">S/ {{ act.amount }}</strong>
+                <span class="badge" [class.badge-success]="act.status==='confirmada'" [class.badge-info]="act.status==='completada'">
+                  {{ act.status }}
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="earnings-chart">
+          <h3>Ingresos del mes</h3>
+          <div class="bar-chart">
+            @for (item of [{l:'Sem 1',v:180},{l:'Sem 2',v:240},{l:'Sem 3',v:195},{l:'Sem 4 (parcial)',v:240}]; track item.l) {
+              <div class="bar-group">
+                <div class="bar" [style.height.px]="item.v / 3">
+                  <span class="bar-val">S/{{ item.v }}</span>
+                </div>
+                <span class="bar-label">{{ item.l }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
