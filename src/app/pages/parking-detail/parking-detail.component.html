@@ -1,0 +1,159 @@
+@if (loading) {
+  <div class="loading"><div class="spinner"></div> Cargando...</div>
+} @else if (!space) {
+  <div class="not-found container">
+    <h2>Espacio no encontrado</h2>
+    <a routerLink="/buscar" class="btn btn-primary">Volver a búsqueda</a>
+  </div>
+} @else {
+  <div class="detail-page">
+    <div class="detail-hero">
+      <div class="container">
+        <a routerLink="/buscar" class="back-link">← Volver a resultados</a>
+        <div class="detail-header">
+          <div>
+            <h1>{{ space.title }}</h1>
+            <div class="detail-location">📍 {{ space.address }}, {{ space.district }}</div>
+            <div class="detail-meta">
+              <div class="rating">
+                <span class="stars">{{ getStars(space.rating) }}</span>
+                <span class="rating-number">{{ space.rating }}</span>
+                <span class="rating-count">({{ space.reviews }} opiniones)</span>
+              </div>
+              <span class="badge" [class.badge-success]="space.available" [class.badge-danger]="!space.available">
+                {{ space.available ? '✓ Disponible' : '✗ Sin disponibilidad' }}
+              </span>
+              <span class="badge badge-info">{{ space.type | titlecase }}</span>
+            </div>
+          </div>
+          <div class="detail-price">
+            <span class="big-price">S/ {{ space.price }}</span>
+            <span class="price-unit">por hora</span>
+            @if (space.priceDay) {
+              <span class="day-price">S/ {{ space.priceDay }} / día</span>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container detail-body">
+      <div class="detail-main">
+        <!-- IMAGEN / MAPA SIMULADO -->
+        <div class="space-visual">
+          <div class="visual-placeholder">
+            <span>🅿️</span>
+            <p>{{ space.title }}</p>
+            <small>{{ space.district }}</small>
+          </div>
+        </div>
+
+        <!-- DESCRIPCIÓN -->
+        <div class="detail-section">
+          <h2>Descripción</h2>
+          <p>{{ space.description }}</p>
+        </div>
+
+        <!-- CARACTERÍSTICAS -->
+        <div class="detail-section">
+          <h2>Características</h2>
+          <div class="features-grid">
+            @for (f of space.features; track f) {
+              <div class="feature-item">
+                <span class="feature-check">✓</span>
+                {{ f }}
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- TIPOS DE VEHÍCULO -->
+        <div class="detail-section">
+          <h2>Tipos de vehículo aceptados</h2>
+          <div class="vehicle-types">
+            @for (v of space.vehicleTypes; track v) {
+              <div class="vehicle-badge">
+                {{ v === 'auto' ? '🚗' : v === 'moto' ? '🏍️' : '🚲' }}
+                {{ v | titlecase }}
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- HORARIO -->
+        <div class="detail-section">
+          <h2>Horario de atención</h2>
+          <div class="schedule">
+            <span>🕐 {{ space.schedule.open }} – {{ space.schedule.close }}</span>
+          </div>
+        </div>
+
+        <!-- DISPONIBILIDAD -->
+        <div class="detail-section">
+          <h2>Disponibilidad de espacios</h2>
+          <div class="spots-visual">
+            @for (i of [].constructor(space.totalSpots); track $index) {
+              <div class="spot" [class.occupied]="$index >= space.availableSpots">
+                {{ $index >= space.availableSpots ? '🚗' : '⬜' }}
+              </div>
+            }
+          </div>
+          <p class="spots-label">{{ space.availableSpots }} de {{ space.totalSpots }} espacios disponibles</p>
+        </div>
+
+        <!-- RESEÑAS -->
+        <div class="detail-section">
+          <h2>Opiniones de usuarios</h2>
+          <div class="reviews-list">
+            @for (review of reviews; track review.user) {
+              <div class="review-card">
+                <div class="review-header">
+                  <div class="review-avatar">{{ review.avatar }}</div>
+                  <div>
+                    <strong>{{ review.user }}</strong>
+                    <div class="review-meta">
+                      <span class="stars">{{ getStars(review.rating) }}</span>
+                      <span class="review-date">{{ review.date }}</span>
+                    </div>
+                  </div>
+                </div>
+                <p>{{ review.comment }}</p>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- SIDEBAR RESERVA -->
+      <div class="booking-sidebar">
+        <div class="booking-card">
+          <div class="booking-price">
+            <span class="big-price">S/ {{ space.price }}</span>
+            <span>/hora</span>
+          </div>
+          <div class="booking-info">
+            <div class="info-row"><span>🏠 Propietario</span><span>{{ space.ownerName }}</span></div>
+            <div class="info-row"><span>📦 Tipo</span><span>{{ space.type | titlecase }}</span></div>
+            <div class="info-row"><span>🚘 Espacios libres</span><span>{{ space.availableSpots }}</span></div>
+          </div>
+          @if (space.available) {
+            <a [routerLink]="['/reservar', space.id]" class="btn btn-primary btn-full btn-lg">
+              Reservar ahora →
+            </a>
+          } @else {
+            <button class="btn btn-full" disabled>Sin disponibilidad</button>
+          }
+          <p class="booking-note">✓ Reserva gratis · Solo pagas al confirmar</p>
+        </div>
+
+        <div class="owner-card">
+          <div class="owner-avatar">{{ space.ownerName[0] }}</div>
+          <div>
+            <strong>{{ space.ownerName }}</strong>
+            <p>Propietario verificado ✓</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
