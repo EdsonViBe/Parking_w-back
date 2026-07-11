@@ -1,0 +1,119 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Backend serverless de Parking App (Python + API Gateway + RDS SQL Server)
+
+Parameters:
+  DbHost: { Type: String }
+  DbName: { Type: String }
+  DbUser: { Type: String }
+  DbPassword: { Type: String, NoEcho: true }
+  JwtSecret: { Type: String, NoEcho: true }
+  CorsOrigin: { Type: String, Default: '*' }
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Architectures: [x86_64]
+    Timeout: 30
+    MemorySize: 512
+    Environment:
+      Variables:
+        APP_ENV: prod
+        CORS_ORIGIN: !Ref CorsOrigin
+        DB_HOST: !Ref DbHost
+        DB_PORT: '1433'
+        DB_NAME: !Ref DbName
+        DB_USER: !Ref DbUser
+        DB_PASSWORD: !Ref DbPassword
+        JWT_SECRET: !Ref JwtSecret
+        JWT_ISSUER: parking-api
+        JWT_EXPIRES_MINUTES: '120'
+
+Resources:
+  ParkingApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins: [!Ref CorsOrigin]
+        AllowHeaders: [Content-Type, Authorization]
+        AllowMethods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+
+  SharedUtilsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: parking-shared-utils
+      ContentUri: layers/parking-shared-utils/
+      CompatibleRuntimes: [python3.12]
+      CompatibleArchitectures: [x86_64]
+
+  AuthUtilsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Metadata:
+      BuildMethod: python3.12
+    Properties:
+      LayerName: parking-auth-utils
+      ContentUri: layers/parking-auth-utils/
+      CompatibleRuntimes: [python3.12]
+      CompatibleArchitectures: [x86_64]
+
+  DatabaseUtilsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Metadata:
+      BuildMethod: python3.12
+    Properties:
+      LayerName: parking-database-utils
+      ContentUri: layers/parking-database-utils/
+      CompatibleRuntimes: [python3.12]
+      CompatibleArchitectures: [x86_64]
+
+  AuthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: parking-auth
+      CodeUri: functions/auth/
+      Handler: lambda_function.lambda_handler
+      Layers: [!Ref SharedUtilsLayer, !Ref AuthUtilsLayer, !Ref DatabaseUtilsLayer]
+      Events:
+        Login: { Type: HttpApi, Properties: { ApiId: !Ref ParkingApi, Path: /auth/login, Method: POST } }
+        Register: { Type: HttpApi, Properties: { ApiId: !Ref ParkingApi, Path: /auth/register, Method: POST } }
+
+  UsersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: parking-users
+      CodeUri: functions/users/
+      Handler: lambda_function.lambda_handler
+      Layers: [!Ref SharedUtilsLayer, !Ref AuthUtilsLayer, !Ref DatabaseUtilsLayer]
+      Events:
+        GetMe: { Type: HttpApi, Properties: { ApiId: !Ref ParkingApi, Path: /users/me, Method: GET } }
+        UpdateMe: { Type: HttpApi, Properties: { ApiId: !Ref ParkingApi, Path: /users/me, Method: PATCH } }
+
+  ParkingsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: parking-parkings
+      CodeUri: functions/parkings/
+      Handler: lambda_function.lambda_handler
+      Layers: [!Ref SharedUtilsLayer, !Ref AuthUtilsLayer, !Ref DatabaseUtilsLayer]
+      Events:
+        List: { Type: HttpApi, Properties: { ApiId: !Ref ParkingApi, Path: /parkings, Method: GET } }
+        Get: { Type: HttpApi, Properties: { ApiId: !Ref ParkingApi, Path: /parkings/{id}, Method: GET } }
+        Create: { Type: HttpApi, Properties: { ApiId: !Ref ParkingApi, Path: /parkings, Method: POST } }
+        Update: { Type: HttpApi, Properties: { ApiId: !Ref ParkingApi, Path: /parkings/{id}, Method: PATCH } }
+        Delete: { Type: HttpApi, Properties: { ApiId: !Ref ParkingApi, Path: /parkings/{id}, Method: DELETE } }
+
+  ReservationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: parking-reservations
+      CodeUri: functions/reservations/
+      Handler: lambda_function.lambda_handler
+      Layers: [!Ref SharedUtilsLayer, !Ref AuthUtilsLayer, !Ref DatabaseUtilsLayer]
+      Events:
+        List: { Type: HttpApi, Properties: { ApiId: !Ref ParkingApi, Path: /reservations, Method: GET } }
+        Create: { Type: HttpApi, Properties: { ApiId: !Ref ParkingApi, Path: /reservations, Method: POST } }
+        Update: { Type: HttpApi, Properties: { ApiId: !Ref ParkingApi, Path: /reservations/{id}, Method: PATCH } }
+
+Outputs:
+  ApiUrl:
+    Value: !Sub 'https://${ParkingApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}'

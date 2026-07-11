@@ -3,3 +3,12 @@ node_modules/
 dist/
 .vscode/
 .DS_Store
+.DS_Store
+
+# Backend Python
+backend/.env
+backend/.venv/
+backend/**/*.zip
+backend/**/__pycache__/
+backend/**/*.pyc
+.DS_Store
