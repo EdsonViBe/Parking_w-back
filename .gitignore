@@ -12,3 +12,13 @@ backend/**/*.zip
 backend/**/__pycache__/
 backend/**/*.pyc
 .DS_Store
+
+backend/**/*.zip
+backend/dist/
+
+# Dependencias generadas para Lambda Layers
+backend/layers/parking-auth-utils/python/jwt/
+backend/layers/parking-auth-utils/python/PyJWT-*.dist-info/
+backend/layers/parking-database-utils/python/pymssql/
+backend/layers/parking-database-utils/python/pymssql-*.dist-info/
+backend/layers/parking-database-utils/python/pymssql.libs/

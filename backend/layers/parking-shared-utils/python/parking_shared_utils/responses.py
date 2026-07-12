@@ -1,15 +1,16 @@
 import json
 import os
 from decimal import Decimal
-from datetime import date, datetime
+from datetime import date, datetime, time
 from typing import Any
 
 
 def _json_default(value: Any):
     if isinstance(value, Decimal):
         return float(value)
-    if isinstance(value, (date, datetime)):
+    if isinstance(value, (date, datetime, time)):
         return value.isoformat()
+    
     raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
 
 
