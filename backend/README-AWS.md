@@ -122,3 +122,21 @@ Authorization: Bearer <token>
 - Mantener RDS en subredes privadas.
 - Activar logs y alarmas de CloudWatch.
 - Usar migraciones y pruebas automatizadas antes de producción.
+- ## Arquitectura Backend
+
+El backend de ParkingApp fue desarrollado utilizando una arquitectura serverless sobre AWS.
+
+### Componentes principales
+
+- AWS Lambda para la lógica de negocio.
+- Amazon API Gateway para exponer los servicios REST.
+- Amazon RDS SQL Server como base de datos.
+- GitHub como repositorio del código fuente.
+
+### Flujo general
+
+1. El usuario realiza una solicitud desde Angular.
+2. API Gateway recibe la petición.
+3. Lambda procesa la lógica.
+4. Lambda consulta Amazon RDS.
+5. La respuesta retorna al frontend.
