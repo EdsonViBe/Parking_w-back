@@ -1,90 +1,213 @@
 <section class="profile-page">
-  <div class="profile-header">
+  <header class="profile-header">
     <div class="avatar">
-      {{ currentUser?.name?.charAt(0) || 'U' }}
+      {{ currentUser?.name?.charAt(0)?.toUpperCase() || 'U' }}
     </div>
 
     <div>
-      <p class="eyebrow">Mi perfil</p>
-      <h1>{{ currentUser?.name }}</h1>
+      <p class="profile-label">Mi perfil</p>
+
+      <h1>
+        {{ currentUser?.name || 'Usuario' }}
+      </h1>
+
       <span class="role-badge">
         {{ roleLabel }}
       </span>
     </div>
-  </div>
+  </header>
 
-  <div class="profile-card">
-    <h2>Datos del usuario</h2>
+  @if (loading) {
+    <p class="profile-message">
+      Cargando perfil...
+    </p>
+  }
 
-    <div class="info-list">
-      <div class="info-item">
-        <span>Nombre</span>
-        <strong>{{ currentUser?.name }}</strong>
-      </div>
+  @if (successMessage) {
+    <p class="profile-success">
+      {{ successMessage }}
+    </p>
+  }
 
-      <div class="info-item">
-        <span>Correo</span>
-        <strong>{{ currentUser?.email }}</strong>
-      </div>
+  @if (errorMessage) {
+    <p class="profile-error">
+      {{ errorMessage }}
+    </p>
+  }
 
-      <div class="info-item">
-        <span>Teléfono</span>
-        <strong>{{ currentUser?.phone || 'No registrado' }}</strong>
-      </div>
+  <section class="profile-card">
+    <div class="card-header">
+      <h2>Datos del usuario</h2>
 
-      <div class="info-item">
-        <span>Rol actual</span>
-        <strong>{{ roleLabel }}</strong>
-      </div>
+      @if (!editMode) {
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="startEditing()"
+        >
+          Editar
+        </button>
+      }
     </div>
-  </div>
 
-  <div class="profile-card role-card">
+    @if (!editMode) {
+      <div class="profile-field">
+        <span>Nombre</span>
+        <strong>
+          {{ currentUser?.name }}
+        </strong>
+      </div>
+
+      <div class="profile-field">
+        <span>Correo</span>
+        <strong>
+          {{ currentUser?.email }}
+        </strong>
+      </div>
+
+      <div class="profile-field">
+        <span>Teléfono</span>
+        <strong>
+          {{
+            currentUser?.phone ||
+            'No registrado'
+          }}
+        </strong>
+      </div>
+
+      <div class="profile-field">
+        <span>Rol actual</span>
+        <strong>
+          {{ roleLabel }}
+        </strong>
+      </div>
+    } @else {
+      <form
+        class="profile-form"
+        (ngSubmit)="saveProfile()"
+      >
+        <label>
+          Nombre
+
+          <input
+            type="text"
+            name="name"
+            [(ngModel)]="name"
+            maxlength="120"
+            required
+          />
+        </label>
+
+        <label>
+          Teléfono
+
+          <input
+            type="tel"
+            name="phone"
+            [(ngModel)]="phone"
+            maxlength="25"
+          />
+        </label>
+
+        <label>
+          Correo
+
+          <input
+            type="email"
+            [value]="currentUser?.email"
+            disabled
+          />
+        </label>
+
+        <div class="form-actions">
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="cancelEditing()"
+            [disabled]="saving"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="primary-button"
+            [disabled]="saving"
+          >
+            {{
+              saving
+                ? 'Guardando...'
+                : 'Guardar cambios'
+            }}
+          </button>
+        </div>
+      </form>
+    }
+  </section>
+
+  <section class="profile-card">
     <h2>Cambiar modo de uso</h2>
 
     <p>
-      Actualmente estás usando ParkingApp como
-      <strong>{{ roleLabel }}</strong>.
+      Actualmente estás usando ParkingApp
+      como <strong>{{ roleLabel }}</strong>.
     </p>
 
-    @if (currentUser?.role === 'conductor') {
+    @if (
+      currentUser?.role === 'conductor'
+    ) {
       <p>
-        Como conductor puedes buscar estacionamientos, revisar detalles y realizar reservas.
+        Como conductor puedes buscar
+        estacionamientos y realizar reservas.
       </p>
     } @else {
       <p>
-        Como propietario puedes administrar tu cochera y revisar la información de tus espacios publicados.
+        Como propietario puedes administrar
+        tus estacionamientos y revisar reservas.
       </p>
     }
 
-    <button class="btn-switch" type="button" (click)="switchRole()">
+    <button
+      type="button"
+      class="primary-button"
+      (click)="switchRole()"
+    >
       Cambiar a modo {{ nextRoleLabel }}
     </button>
-  </div>
+  </section>
 
-  <div class="quick-actions">
-    @if (currentUser?.role === 'conductor') {
-      <a routerLink="/buscar" class="action-card">
-        <span>🔎</span>
-        <strong>Buscar cochera</strong>
-        <small>Encuentra estacionamiento disponible</small>
+  <section class="profile-card">
+    @if (
+      currentUser?.role === 'conductor'
+    ) {
+      <a
+        routerLink="/buscar"
+        class="profile-link"
+      >
+        Buscar cochera
       </a>
 
-      <a routerLink="/mis-reservas" class="action-card">
-        <span>📅</span>
-        <strong>Mis reservas</strong>
-        <small>Revisa tus reservas activas</small>
+      <a
+        routerLink="/mis-reservas"
+        class="profile-link"
+      >
+        Mis reservas
       </a>
     } @else {
-      <a routerLink="/dashboard-propietario" class="action-card">
-        <span>🚗</span>
-        <strong>Mi cochera</strong>
-        <small>Administra tus espacios publicados</small>
+      <a
+        routerLink="/dashboard-propietario"
+        class="profile-link"
+      >
+        Mi cochera
       </a>
     }
-  </div>
+  </section>
 
-  <button class="btn-logout" type="button" (click)="logout()">
+  <button
+    type="button"
+    class="logout-button"
+    (click)="logout()"
+  >
     Cerrar sesión
   </button>
 </section>
