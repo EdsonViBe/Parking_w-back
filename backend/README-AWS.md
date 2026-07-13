@@ -140,3 +140,9 @@ El backend de ParkingApp fue desarrollado utilizando una arquitectura serverless
 3. Lambda procesa la lógica.
 4. Lambda consulta Amazon RDS.
 5. La respuesta retorna al frontend.
+   
+### Variables de entorno
+
+El backend utiliza variables de entorno para almacenar la configuración de conexión a la base de datos y otros parámetros necesarios para la ejecución de las funciones Lambda.
+
+Estas variables deben configurarse correctamente antes del despliegue para garantizar el funcionamiento del sistema.
