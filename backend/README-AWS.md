@@ -146,3 +146,10 @@ El backend de ParkingApp fue desarrollado utilizando una arquitectura serverless
 El backend utiliza variables de entorno para almacenar la configuración de conexión a la base de datos y otros parámetros necesarios para la ejecución de las funciones Lambda.
 
 Estas variables deben configurarse correctamente antes del despliegue para garantizar el funcionamiento del sistema.
+
+### Buenas prácticas
+
+- Mantener actualizadas las dependencias.
+- Realizar pruebas antes del despliegue.
+- No almacenar credenciales directamente en el código fuente.
+- Utilizar control de versiones mediante GitHub.
